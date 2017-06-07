@@ -230,6 +230,21 @@ def get_resumo_autor(autor_id):
     return jsonify(rjson)
 
 
+@app.route("/autores/<int:autor_id>/pontuacao", methods=['GET'])
+def get_pontuacao_autor(autor_id):
+    autor = Autor.query.filter_by(autor_id=autor_id).first()
+
+    r = db.engine.execute('SELECT SUM(ED.PONTUACAO_QUALIS) FROM AUTOR A INNER JOIN pub_autores PA ON A.AUTOR_ID = PA.autor_id INNER JOIN PUBLICACAO P ON PA.publicacao_id = P.PUBLICACAO_ID INNER JOIN EDICAO ED ON P.EDICAO_ID = ED.EDICAO_ID WHERE A.AUTOR_ID = {}'.format(autor_id))
+
+    rjson = []
+
+    for i in r:
+    	rjson.append({'pontuacaoQualis' : int(i[0])})
+
+    return jsonify(rjson)
+
+
+
 ##### PUBLICACAO #####
 
 @app.route("/publicacoes", methods=['GET'])
