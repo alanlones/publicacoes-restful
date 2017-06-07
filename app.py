@@ -2,8 +2,8 @@ from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost:3306/publicacoes6'
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:admin@devtools:3306/publicacoes'
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost:3306/publicacoes6'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:admin@devtools:3306/publicacoes'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -127,7 +127,10 @@ def home():
 @app.route("/locais", methods=['GET'])
 def get_locais():
     locais = Local.query.filter().all()
-    return jsonify(str(locais))
+    locais_json = []
+    for local in locais:
+        locais_json.append(local.toJson())
+    return jsonify(locais_json)
 
 @app.route("/locais/<int:local_id>", methods=['GET'])
 def get_local(local_id):
