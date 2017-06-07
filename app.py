@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost:3306/publicacoes4'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost:3306/publicacoes6'
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:admin@devtools:3306/publicacoes'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -30,7 +30,10 @@ class Autor(db.Model):
     publicacoes = db.relationship('Publicacao', secondary=pub_autores, backref=db.backref('autores', lazy='dynamic'))
 
     def __repr__(self):
-        return {'autor_id': self.autor_id, 'cpf': self.cpf, 'nome': self.nome, 'nome_citacao': self.nome_citacao}
+        return str({'autor_id': self.autor_id,
+                    'cpf': self.cpf,
+                    'nome': self.nome,
+                    'nome_citacao': self.nome_citacao})
 
 class Publicacao(db.Model):
     publicacao_id = db.Column(db.Integer, primary_key=True)
@@ -38,7 +41,8 @@ class Publicacao(db.Model):
     edicao_id = db.Column(db.Integer, db.ForeignKey('edicao.edicao_id'))
 
     def __repr__(self):
-        return {'publicacao_id': self.publicacao_id, 'titulo': self.titulo}
+        return str({'publicacao_id': self.publicacao_id,
+                 'titulo': self.titulo})
 
 class Forum(db.Model):
     forum_id = db.Column(db.Integer, primary_key=True)
@@ -48,7 +52,7 @@ class Forum(db.Model):
     edicoes = db.relationship('Edicao', backref='forum', lazy='dynamic')
 
     def __repr__(self):
-        return {'forum_id':self.forum_id, 'nome':self.nome, 'sigla':self.sigla, 'tipo':self.tipo}
+        return str({'forum_id':self.forum_id, 'nome':self.nome, 'sigla':self.sigla, 'tipo':self.tipo})
 
 class Edicao(db.Model):
     edicao_id = db.Column(db.Integer, primary_key=True)
@@ -60,7 +64,10 @@ class Edicao(db.Model):
     publicacoes = db.relationship('Publicacao', backref='edicao', lazy='dynamic')
 
     def __repr__(self):
-        return {'edicao_id':self.edicao_id, 'ano':self.ano, 'qualis':self.qualis, 'pontucacao_qualis':self.pontucacao_qualis}
+        return str({'edicao_id': self.edicao_id,
+                 'ano': self.ano,
+                 'qualis': self.qualis,
+                 'pontuacao_qualis': self.pontuacao_qualis})
 
 def rollback_bd():
     db.drop_all()
@@ -116,12 +123,60 @@ rollback_bd()
 
 @app.route("/")
 def home():
-    return "Bem Vindo!"
+    return "1337 SOA"
+
+## GET ##
 
 @app.route("/locais", methods=['GET'])
 def get_locais():
     locais = Local.query.filter().all()
     return jsonify(str(locais))
+
+@app.route("/locais/<int:local_id>", methods=['GET'])
+def get_local(local_id):
+    local = Local.query.filter_by(local_id=local_id).first()
+    return jsonify(str(local))
+
+@app.route("/autores", methods=['GET'])
+def get_autores():
+    autores = Autor.query.filter().all()
+    return jsonify(str(autores))
+
+@app.route("/autores/<int:autor_id>", methods=['GET'])
+def get_autor(autor_id):
+    autor = Autor.query.filter_by(autor_id=autor_id).first()
+    return jsonify(str(autor))
+
+@app.route("/publicacoes", methods=['GET'])
+def get_publicacoes():
+    publicacoes = Publicacao.query.filter().all()
+    return jsonify(str(publicacoes))
+
+@app.route("/publicacoes/<int:publicacao_id>", methods=['GET'])
+def get_publicacao(publicacao_id):
+    publicacao = Publicacao.query.filter_by(publicacao_id=publicacao_id).first()
+    return jsonify(str(publicacao))
+
+@app.route("/edicoes", methods=['GET'])
+def get_edicoes():
+    edicoes = Edicao.query.filter().all()
+    return jsonify(str(edicoes))
+
+@app.route("/edicoes/<int:edicao_id>", methods=['GET'])
+def get_edicao(edicao_id):
+    edicao = Edicao.query.filter_by(edicao_id=edicao_id).first()
+    return jsonify(str(edicao))
+
+@app.route("/foruns", methods=['GET'])
+def get_foruns():
+    foruns = Forum.query.filter().all()
+    return jsonify(str(foruns))
+
+@app.route("/foruns/<int:forum_id>", methods=['GET'])
+def get_forum(forum_id):
+    forum = Forum.query.filter_by(forum_id=forum_id).first()
+    return jsonify(str(forum))
+
 
 if __name__ == "__main__":
     app.run(debug=True)
