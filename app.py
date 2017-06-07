@@ -120,8 +120,8 @@ def home():
 
 @app.route("/locais", methods=['GET'])
 def get_locais():
-    rio = Local(cidade='Rio de Janeiro', pais='Brasil')
-    return jsonify(str(rio))
+    locais = Local.query.filter().all()
+    return jsonify(str(locais))
 
 if __name__ == "__main__":
     app.run(debug=True)
