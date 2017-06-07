@@ -123,7 +123,7 @@ rollback_bd()
 def home():
     return "1337 SOA"
 
-## GET ##
+##### LOCAL #####
 
 @app.route("/locais", methods=['GET'])
 def get_locais():
@@ -133,10 +133,45 @@ def get_locais():
         locais_json.append(local.toJson())
     return jsonify(locais_json)
 
-@app.route("/locais/<int:local_id>", methods=['GET'])
+@app.route('/locais/<int:local_id>', methods=['GET'])
 def get_local(local_id):
     local = Local.query.filter_by(local_id=local_id).first()
     return jsonify(local.toJson())
+
+@app.route('/locais', methods=['POST'])
+def create_local():
+    if not request.json:
+        abort(400)
+
+    local = Local(
+    	cidade=request.json['cidade'],
+    	pais=request.json['pais']
+    	)
+    db.session.add(local)
+    db.session.commit()
+    
+    get_locais()
+
+@app.route('/locais/<int:local_id>', methods=['PUT'])
+def update_local(local_id):
+    task = [task for task in tasks if task['id'] == task_id]
+    if not request.json:
+        abort(400)
+
+    cidade = request.json.get('cidade')
+    pais = request.json.get('pais')
+
+    local = Local(cidade=cidade, pais=pais)
+
+    db.session.add(local)
+    db.session.commit()
+
+    get_local(local_id)
+
+
+
+
+##### AUTOR #####
 
 @app.route("/autores", methods=['GET'])
 def get_autores():
