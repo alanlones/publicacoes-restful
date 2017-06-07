@@ -65,7 +65,7 @@ class Edicao(db.Model):
     publicacoes = db.relationship('Publicacao', backref='edicao', lazy='dynamic')
 
     def toJson(self):
-        return {'edicao_id':self.edicao_id, 'ano':self.ano, 'qualis':self.qualis, 'pontucacao_qualis':self.pontucacao_qualis}
+        return {'edicao_id':self.edicao_id, 'ano':self.ano, 'qualis':self.qualis, 'pontuacao_qualis':self.pontuacao_qualis}
 
 def rollback_bd():
     db.drop_all()
