@@ -1,12 +1,14 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request, abort, make_response
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 
 app = Flask(__name__)
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost:3306/publicacoes6'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost:3306/publicacoes2'
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:admin@devtools:3306/publicacoes'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:root@localhost:3306/publicacoes' #estagio
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:root@localhost:3306/publicacoes' #estagio
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+CORS(app)
 
 
 class Local(db.Model):
@@ -138,36 +140,22 @@ def get_local(local_id):
     local = Local.query.filter_by(local_id=local_id).first()
     return jsonify(local.toJson())
 
-@app.route('/locais', methods=['POST'])
-def create_local():
-    if not request.json:
-        abort(400)
-
-    local = Local(
-    	cidade=request.json['cidade'],
-    	pais=request.json['pais']
-    	)
-    db.session.add(local)
-    db.session.commit()
-    
-    get_locais()
-
 @app.route('/locais/<int:local_id>', methods=['PUT'])
 def update_local(local_id):
-    task = [task for task in tasks if task['id'] == task_id]
     if not request.json:
         abort(400)
 
-    cidade = request.json.get('cidade')
-    pais = request.json.get('pais')
+    cidade = request.json['cidade']
+    pais = request.json['pais']
 
-    local = Local(cidade=cidade, pais=pais)
+    local = Local.query.filter_by(local_id=local_id).first()
+    local.cidade = cidade;
+    local.pais = pais;
 
     db.session.add(local)
     db.session.commit()
 
-    get_local(local_id)
-
+    return get_local(local_id)
 
 
 
@@ -186,6 +174,64 @@ def get_autor(autor_id):
     autor = Autor.query.filter_by(autor_id=autor_id).first()
     return jsonify(autor.toJson())
 
+@app.route('/autores/<int:autor_id>', methods=['PUT'])
+def update_autor(autor_id):
+    if not request.json:
+        abort(400)
+
+    cpf = request.json['cpf']
+    nome = request.json['nome']
+    nome_citacao = request.json['nome_citacao']
+
+    autor = Autor.query.filter_by(autor_id=autor_id).first()
+    autor.cpf = cpf
+    autor.nome = nome
+    autor.nome_citacao = nome_citacao
+
+    db.session.add(autor)
+    db.session.commit()
+
+    return get_autor(autor_id)
+
+@app.route('/autores', methods=['POST'])
+def create_autor():
+	if not request.json:
+		abort(400)
+
+	autor = Autor(cpf=request.json['cpf'],
+	nome=request.json['nome'],
+	nome_citacao=nome_citacao.json['nome_citacao'])
+	
+	db.session.add(autor)
+	db.session.commit()
+	
+	return get_autores()
+
+@app.route('/autores/<int:autor_id>', methods=['DELETE'])
+def delete_autor(autor_id):
+	autor = Autor.query.filter_by(autor_id=autor_id).first()
+	db.session.delete(autor)
+	db.session.commit()
+
+	return jsonify({'result': True})
+
+
+@app.route("/autores/<int:autor_id>/resumo", methods=['GET'])
+def get_resumo_autor(autor_id):
+    autor = Autor.query.filter_by(autor_id=autor_id).first()
+
+    r = db.engine.execute('SELECT P.TITULO, ED.QUALIS FROM AUTOR A INNER JOIN pub_autores PA ON A.AUTOR_ID = PA.autor_id INNER JOIN PUBLICACAO P ON PA.publicacao_id = P.PUBLICACAO_ID INNER JOIN EDICAO ED ON P.EDICAO_ID = ED.EDICAO_ID WHERE A.AUTOR_ID = {}'.format(autor_id))
+
+    rjson = []
+
+    for i in r:
+    	rjson.append({'titulo':i[0], 'qualis':i[1]})
+
+    return jsonify(rjson)
+
+
+##### PUBLICACAO #####
+
 @app.route("/publicacoes", methods=['GET'])
 def get_publicacoes():
     publicacoes = Publicacao.query.filter().all()
@@ -199,6 +245,68 @@ def get_publicacao(publicacao_id):
     publicacao = Publicacao.query.filter_by(publicacao_id=publicacao_id).first()
     return jsonify(publicacao.toJson())
 
+@app.route('/publicacoes/<int:publicacao_id>', methods=['PUT'])
+def update_publicacao(publicacao_id):
+    if not request.json:
+        abort(400)
+
+    titulo = request.json['titulo']
+
+    publicacao = Publicacao.query.filter_by(publicacao_id=publicacao_id).first()
+    publicacao.titulo = titulo;
+
+    db.session.add(publicacao)
+    db.session.commit()
+
+    return get_publicacao(publicacao_id)
+
+@app.route('/publicacoes', methods=['POST'])
+def create_publicacao():
+	if not request.json:
+		abort(400)
+
+	publicacao = Publicacao(titulo=request.json['titulo'])
+
+	for autor_id in request.json['autores']:
+		publicacao.autores.append(Autor.query.filter_by(autor_id=autor_id).first())
+
+	edicao_id = request.json['edicao_id']
+
+	publicacao.edicao = Edicao.query.filter_by(edicao_id=edicao_id).first()
+	
+	db.session.add(publicacao)
+	db.session.commit()
+	
+	return get_publicacoes()
+
+@app.route('/publicacoes/<int:publicacao_id>', methods=['DELETE'])
+def delete_publicacao(publicacao_id):
+    publicacao = Publicacao.query.filter_by(publicacao_id=publicacao_id).first()
+    
+    db.session.delete(publicacao)
+    db.session.commit()
+
+    return jsonify({'result': True})
+
+@app.route('/publicacoes/<int:publicacao_id>/resumo', methods=['GET'])
+def get_resumo_pub(publicacao_id):
+	publicacao = Publicacao.query.filter_by(publicacao_id=publicacao_id).first()
+
+	nomes_citacao = []
+
+	for autor in publicacao.autores:
+		nomes_citacao.append(autor.nome_citacao)
+
+	pub_resumo = {
+		'titulo' : publicacao.titulo,
+		'ano' : publicacao.edicao.ano,
+		'autores' : nomes_citacao
+	}
+
+	return jsonify(pub_resumo)
+
+##### EDICAO #####
+
 @app.route("/edicoes", methods=['GET'])
 def get_edicoes():
     edicoes = Edicao.query.filter().all()
@@ -211,6 +319,8 @@ def get_edicoes():
 def get_edicao(edicao_id):
     edicao = Edicao.query.filter_by(edicao_id=edicao_id).first()
     return jsonify(edicao.toJson())
+
+##### FORUM #####
 
 @app.route("/foruns", methods=['GET'])
 def get_foruns():
