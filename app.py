@@ -3,7 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost:3306/publicacoes6'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:admin@devtools:3306/publicacoes'
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:admin@devtools:3306/publicacoes'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:root@localhost:3306/publicacoes' #estagio
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -135,47 +136,59 @@ def get_locais():
 @app.route("/locais/<int:local_id>", methods=['GET'])
 def get_local(local_id):
     local = Local.query.filter_by(local_id=local_id).first()
-    return jsonify(str(local))
+    return jsonify(local.toJson())
 
 @app.route("/autores", methods=['GET'])
 def get_autores():
     autores = Autor.query.filter().all()
-    return jsonify(str(autores))
+    autores_json = []
+    for autor in autores:
+        autores_json.append(autor.toJson())
+    return jsonify(autores_json)
 
 @app.route("/autores/<int:autor_id>", methods=['GET'])
 def get_autor(autor_id):
     autor = Autor.query.filter_by(autor_id=autor_id).first()
-    return jsonify(str(autor))
+    return jsonify(autor.toJson())
 
 @app.route("/publicacoes", methods=['GET'])
 def get_publicacoes():
     publicacoes = Publicacao.query.filter().all()
-    return jsonify(str(publicacoes))
+    pub_json = []
+    for pub in publicacoes:
+        pub_json.append(pub.toJson())
+    return jsonify(pub_json)
 
 @app.route("/publicacoes/<int:publicacao_id>", methods=['GET'])
 def get_publicacao(publicacao_id):
     publicacao = Publicacao.query.filter_by(publicacao_id=publicacao_id).first()
-    return jsonify(str(publicacao))
+    return jsonify(publicacao.toJson())
 
 @app.route("/edicoes", methods=['GET'])
 def get_edicoes():
     edicoes = Edicao.query.filter().all()
-    return jsonify(str(edicoes))
+    edicoes_json = []
+    for edicao in edicoes:
+        edicoes_json.append(edicao.toJson())
+    return jsonify(edicoes_json)
 
 @app.route("/edicoes/<int:edicao_id>", methods=['GET'])
 def get_edicao(edicao_id):
     edicao = Edicao.query.filter_by(edicao_id=edicao_id).first()
-    return jsonify(str(edicao))
+    return jsonify(edicao.toJson())
 
 @app.route("/foruns", methods=['GET'])
 def get_foruns():
     foruns = Forum.query.filter().all()
-    return jsonify(str(foruns))
+    foruns_json = []
+    for forum in foruns:
+        foruns_json.append(forum.toJson())
+    return jsonify(foruns_json)
 
 @app.route("/foruns/<int:forum_id>", methods=['GET'])
 def get_forum(forum_id):
     forum = Forum.query.filter_by(forum_id=forum_id).first()
-    return jsonify(str(forum))
+    return jsonify(forum.toJson())
 
 if __name__ == "__main__":
     app.run(debug=True)
